@@ -618,20 +618,6 @@ func InitWin() {
 							},
 						},
 					},
-
-					/*TableView{
-						Name:             "tableView", // Name is needed for settings persistence
-						AlternatingRowBG: true,
-						ColumnsOrderable: true,
-						Columns: []TableViewColumn{
-							// Name is needed for settings persistence
-							{Name: "#", DataMember: "Index"}, // Use DataMember, if names differ
-							{Name: "Bar"},
-							{Name: "Baz", Format: "%.2f", Alignment: AlignFar},
-							{Name: "Quux", Format: "2006-01-02 15:04:05", Width: 150},
-						},
-						//Model: NewFooModel(),
-					},*/
 				},
 			},
 		},
