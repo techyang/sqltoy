@@ -6,7 +6,6 @@ package main
 
 import (
 	"github.com/techyang/sqltoy/client"
-	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -14,7 +13,6 @@ import (
 
 import (
 	"github.com/lxn/walk"
-	. "github.com/lxn/walk/declarative"
 )
 
 var isSpecialMode = walk.NewMutableCondition()
@@ -28,175 +26,6 @@ type MyMainWindow struct {
 
 func main() {
 	client.InitWin()
-}
-func main1() {
-	MustRegisterCondition("isSpecialMode", isSpecialMode)
-
-	//mw := new(MyMainWindow)
-	mw := &MyMainWindow{model: NewEnvModel()}
-	var openAction, showAboutBoxAction *walk.Action
-	var recentMenu *walk.Menu
-	//var toggleSpecialModePB *walk.PushButton
-
-	if err, _ := (MainWindow{
-		AssignTo: &mw.MainWindow,
-		Title:    "Walk Actions Example",
-		MenuItems: []MenuItem{
-			Menu{
-				Text: "&File",
-				Items: []MenuItem{
-					Action{
-						AssignTo:    &openAction,
-						Text:        "&Open",
-						Image:       "../img/open.png",
-						Enabled:     Bind("enabledCB.Checked"),
-						Visible:     Bind("!openHiddenCB.Checked"),
-						Shortcut:    Shortcut{walk.ModControl, walk.KeyO},
-						OnTriggered: mw.openAction_Triggered,
-					},
-					Menu{
-						AssignTo: &recentMenu,
-						Text:     "Recent",
-					},
-					Separator{},
-					Action{
-						Text:        "E&xit",
-						OnTriggered: func() { mw.Close() },
-					},
-				},
-			},
-			Menu{
-				Text: "&View",
-				Items: []MenuItem{
-					Action{
-						Text:    "Open / Special Enabled",
-						Checked: Bind("enabledCB.Visible"),
-					},
-					Action{
-						Text:    "Open Hidden",
-						Checked: Bind("openHiddenCB.Visible"),
-					},
-				},
-			},
-			Menu{
-				Text: "帮助",
-				Items: []MenuItem{
-					Action{
-						AssignTo:    &showAboutBoxAction,
-						Text:        "关于",
-						OnTriggered: mw.showAboutBoxAction_Triggered,
-						Shortcut:    Shortcut{walk.ModControl, walk.KeyH},
-					},
-					Separator{},
-					Action{
-						AssignTo:    &showAboutBoxAction,
-						Text:        "帮助",
-						OnTriggered: mw.showAboutBoxAction_Triggered,
-					},
-				},
-			},
-		},
-		ToolBar: ToolBar{
-			ButtonStyle: ToolBarButtonImageBeforeText,
-			Items: []MenuItem{
-				ActionRef{&openAction},
-				Menu{
-					Text:  "New A",
-					Image: "../img/document-new.png",
-					Items: []MenuItem{
-						Action{
-							Text:        "A",
-							OnTriggered: mw.newAction_Triggered,
-						},
-						Action{
-							Text:        "B",
-							OnTriggered: mw.newAction_Triggered,
-						},
-						Action{
-							Text:        "C",
-							OnTriggered: mw.newAction_Triggered,
-						},
-					},
-					OnTriggered: mw.newAction_Triggered,
-				},
-				Separator{},
-				Menu{
-					Text:  "View",
-					Image: "../img/document-properties.png",
-					Items: []MenuItem{
-						Action{
-							Text:        "X",
-							OnTriggered: mw.changeViewAction_Triggered,
-						},
-						Action{
-							Text:        "Y",
-							OnTriggered: mw.changeViewAction_Triggered,
-						},
-						Action{
-							Text:        "Z",
-							OnTriggered: mw.changeViewAction_Triggered,
-						},
-					},
-				},
-				Separator{},
-				Action{
-					Text:        "Special",
-					Image:       "../img/system-shutdown.png",
-					Enabled:     Bind("isSpecialMode && enabledCB.Checked"),
-					OnTriggered: mw.specialAction_Triggered,
-				},
-			},
-		},
-		ContextMenuItems: []MenuItem{
-			ActionRef{&showAboutBoxAction},
-		},
-		MinSize: Size{300, 200},
-		Layout:  VBox{},
-		Children: []Widget{
-			HSplitter{
-				Children: []Widget{
-					ListBox{
-						//AssignTo: &mw.lb,
-						//	Model: NewEnvModel(),
-						//OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
-						//OnItemActivated:       mw.lb_ItemActivated,
-					},
-					TreeView{
-						//AssignTo: &treeView,
-						//Model:     createTreeModel(),
-					},
-					TableView{
-						Name:             "tableView", // Name is needed for settings persistence
-						AlternatingRowBG: true,
-						ColumnsOrderable: true,
-						Columns: []TableViewColumn{
-							// Name is needed for settings persistence
-							{Name: "#", DataMember: "Index"}, // Use DataMember, if names differ
-							{Name: "Bar"},
-							{Name: "Baz", Format: "%.2f", Alignment: AlignFar},
-							{Name: "Quux", Format: "2006-01-02 15:04:05", Width: 150},
-						},
-						Model: NewFooModel(),
-					},
-				},
-			},
-		},
-	}.Run()); err != 0 {
-		log.Fatal(err)
-	}
-
-	/*addRecentFileActions := func(texts ...string) {
-		for _, text := range texts {
-			a := walk.NewAction()
-			a.SetText(text)
-			a.Triggered().Attach(mw.openAction_Triggered)
-			recentMenu.Actions().Add(a)
-		}
-	}*/
-
-	//addRecentFileActions("Foo", "Bar", "Baz")
-
-	mw.Run()
 }
 
 func (mw *MyMainWindow) openAction_Triggered() {
