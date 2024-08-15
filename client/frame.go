@@ -69,7 +69,7 @@ func InitWin() {
 					Action{
 						Text:        "&加载SQL文件...",
 						Shortcut:    Shortcut{walk.ModControl, walk.KeyO},
-						OnTriggered: tmw.about,
+						OnTriggered: tmw.open,
 					},
 					Action{
 						Text:        "&运行SQL文件...",
@@ -707,4 +707,21 @@ func (mw *TabMainWindow) newTab(tabTitle string) *walk.TabPage {
 }
 func (mw *TabMainWindow) about() {
 	walk.MsgBox(mw, "", "SQLTOY\r\n\r\n新一代数据库客户端\r\n", walk.MsgBoxIconInformation)
+}
+
+func (mw *TabMainWindow) open() {
+	dlg := new(walk.FileDialog)
+	dlg.Title = "选择文件"
+	dlg.Filter = "SQL文件 (*.sql)|*.sql|文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
+
+	//mw.edit.SetText("") //通过重定向变量设置TextEdit的Text
+	if ok, err := dlg.ShowOpen(mw); err != nil {
+
+		walk.MsgBox(mw, "Open", dlg.FilePath, walk.MsgBoxIconInformation)
+		//mw.edit.AppendText("Error : File Open\r\n")
+		return
+	} else if !ok {
+		//	mw.edit.AppendText("Cancel\r\n")
+		return
+	}
 }
