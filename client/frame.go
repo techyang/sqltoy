@@ -512,7 +512,7 @@ func InitWin() {
 												},
 												Children: []Widget{
 
-													TextEdit{Text: "数据库过滤器11111"},
+													TextEdit{Text: "数据库过滤器"},
 													TextEdit{Text: "表过滤器"},
 												},
 											},
