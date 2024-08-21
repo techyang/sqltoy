@@ -151,10 +151,6 @@ func InitWin() {
 						Shortcut:    Shortcut{walk.ModControl | walk.ModAlt, walk.KeyF},
 						OnTriggered: tmw.about,
 					},
-					/*Menu{
-						AssignTo: &tmw.targetPlatform,
-						Text:     "&目标平台",
-					},*/
 				},
 			},
 			Menu{
@@ -512,7 +508,7 @@ func InitWin() {
 												},
 												Children: []Widget{
 
-													TextEdit{Text: "数据库过滤器11111"},
+													TextEdit{Text: "数据库过滤器"},
 													TextEdit{Text: "表过滤器"},
 												},
 											},
