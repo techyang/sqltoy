@@ -151,10 +151,6 @@ func InitWin() {
 						Shortcut:    Shortcut{walk.ModControl | walk.ModAlt, walk.KeyF},
 						OnTriggered: tmw.about,
 					},
-					/*Menu{
-						AssignTo: &tmw.targetPlatform,
-						Text:     "&目标平台",
-					},*/
 				},
 			},
 			Menu{
