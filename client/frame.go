@@ -515,7 +515,13 @@ func InitWin() {
 											Label{
 												Text: "名称:",
 											},
-											TextEdit{Text: "数据库过滤器aaaaaaaaaaaaaa"},
+											DateEdit{
+												MaxSize:     Size{Width: 78},
+												Date:        "2024/08/26",
+												Format:      "yyyy/MM/dd",
+												ToolTipText: "请选择查询开始日期",
+											},
+											//TextEdit{Text: "数据库过滤器aaaaaaaaaaaaaabbbbb"},
 										},
 									},
 									Composite{
