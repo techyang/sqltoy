@@ -13,6 +13,75 @@ func InitWin() {
 
 	tmw := new(TabMainWindow)
 
+	fileMenu := Menu{
+		Text: "&文件",
+		Items: []MenuItem{
+			Action{
+				Text:  "&会话管理器",
+				Image: "/icons/disconnect.png",
+				//OnTriggered: tmw.openCommandManagePanel,
+			},
+			Action{
+				Text: "&连接到",
+				//	OnTriggered: tmw.openRelatedInstructionsPanel,
+			},
+			Action{
+				Text:        "&新建窗口",
+				Shortcut:    Shortcut{walk.ModControl, walk.KeyN},
+				OnTriggered: tmw.about,
+			},
+			Action{
+				Text:        "&新建查询标签页",
+				Shortcut:    Shortcut{walk.ModControl, walk.KeyT},
+				OnTriggered: tmw.about,
+			},
+			Action{
+				Text:        "&关闭查询标签页",
+				Shortcut:    Shortcut{walk.ModControl, walk.KeyF4},
+				OnTriggered: tmw.about,
+			},
+			Action{
+				Text: "&关闭所有查询标签页",
+				//Shortcut:    Shortcut{walk.ModControl, walk.KeyN},
+				OnTriggered: tmw.about,
+			},
+			Separator{},
+			Action{
+				Text:        "&加载SQL文件...",
+				Shortcut:    Shortcut{walk.ModControl, walk.KeyO},
+				OnTriggered: tmw.open,
+			},
+			Action{
+				Text:        "&运行SQL文件...",
+				OnTriggered: tmw.about,
+			},
+			Action{
+				Text:        "&保存",
+				Shortcut:    Shortcut{walk.ModControl, walk.KeyS},
+				OnTriggered: tmw.about,
+			},
+			Action{
+				Text:        "&保存为SQL片段...",
+				OnTriggered: tmw.about,
+			},
+			Separator{},
+			Action{
+				Text:        "&导出配置文件...",
+				OnTriggered: tmw.about,
+			},
+			Action{
+				Text:        "&导入配置文件...",
+				OnTriggered: tmw.about,
+			},
+			Separator{},
+			Action{
+				Text:        "&退出(X)",
+				Shortcut:    Shortcut{walk.ModAlt, walk.KeyF4},
+				OnTriggered: tmw.about,
+			},
+		},
+	}
+
 	if err := (MainWindow{
 		Title:      "SQLTOY",
 		AssignTo:   &tmw.MainWindow,
@@ -33,6 +102,7 @@ func InitWin() {
 		//	},
 		//},
 		MenuItems: []MenuItem{
+			fileMenu,
 			Menu{
 				Text: "&文件",
 				Items: []MenuItem{
@@ -451,33 +521,56 @@ func InitWin() {
 			HSplitter{
 				Children: []Widget{
 					Composite{
-						Layout: VBox{
-							Margins:     Margins{Top: 3},
-							MarginsZero: true,
-							SpacingZero: true,
-							Alignment:   AlignHVDefault,
+						Layout: Grid{
+							Columns: 2,
+							/*	Margins:     Margins{Top: 3},
+								MarginsZero: true,
+								SpacingZero: true,
+								Alignment:   AlignHVDefault,*/
 							//	Alignment: AlignHCenterVCenter,
 						},
 						Children: []Widget{
 							Composite{
-								Layout: HBox{
-									Margins:     Margins{Top: 3},
-									MarginsZero: true,
-									SpacingZero: true,
+								Layout: Grid{
+									Columns: 2,
+									//Margins: Margins{Top: 3},
+									/*	MarginsZero: true,
+										SpacingZero: true,*/
 								},
 								Children: []Widget{
-									Label{
+									/*Label{
 										//AssignTo: &vtc.statLbl,
 										Text: "ddd",
 										Font: Font{PointSize: 10},
-									},
-									HSpacer{},
-									TextEdit{Text: "数据库过滤器"},
+									},*/
+									//HSpacer{},
+									TextEdit{Text: "数据库过滤器", MaxSize: Size{Width: 20, Height: 10}, RowSpan: 1},
 									TextEdit{Text: "表过滤器"},
+									ListBox{
+										ColumnSpan: 2,
+										//AssignTo: &mw.lb,
+										MinSize: Size{Width: 20, Height: 800},
+										Model:   NewEnvModel(),
+										//OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
+										//	OnItemActivated:       mw.lb_ItemActivated,
+									},
+									/*ListBox{
+										ColumnSpan: 2,
+										MinSize:    Size{Width: 20, Height: 200},
+										//AssignTo: &mw.lb,
+										Model: NewEnvModel(),
+										//OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
+										//	OnItemActivated:       mw.lb_ItemActivated,
+									},*/
+									HSpacer{RowSpan: 500},
+									HSpacer{},
+									HSpacer{},
+									HSpacer{},
 								},
 							},
-							HSpacer{},
-							TextEdit{Text: "abc"},
+							//HSpacer{},
+							//TextEdit{Text: "abc"},
+
 						},
 					},
 					Composite{
@@ -515,7 +608,13 @@ func InitWin() {
 											Label{
 												Text: "名称:",
 											},
-											TextEdit{Text: "数据库过滤器aaaaaaaaaaaaaa"},
+											DateEdit{
+												MaxSize:     Size{Width: 78},
+												Date:        "2024/08/26",
+												Format:      "yyyy/MM/dd",
+												ToolTipText: "请选择查询开始日期",
+											},
+											//TextEdit{Text: "数据库过滤器aaaaaaaaaaaaaabbbbb"},
 										},
 									},
 									Composite{
@@ -636,8 +735,8 @@ type TabMainWindow struct {
 	TabWidget      *walk.TabWidget
 	targetPlatform *walk.Menu
 	configMenu     *walk.Menu
-
-	helpMenu *walk.Menu
+	fileMenu       *walk.Menu
+	helpMenu       *walk.Menu
 }
 
 func InitVehicleTypePage(tmw *TabMainWindow) {
@@ -705,6 +804,10 @@ func (mw *TabMainWindow) about() {
 	walk.MsgBox(mw, "", "SQLTOY\r\n\r\n新一代数据库客户端\r\n", walk.MsgBoxIconInformation)
 }
 
+func (mw *TabMainWindow) initFileMenu() {
+	walk.MsgBox(mw, "", "SQLTOY\r\n\r\n新一代数据库客户端\r\n", walk.MsgBoxIconInformation)
+}
+
 func (mw *TabMainWindow) open() {
 	dlg := new(walk.FileDialog)
 	dlg.Title = "选择文件"
@@ -720,4 +823,42 @@ func (mw *TabMainWindow) open() {
 		//	mw.edit.AppendText("Cancel\r\n")
 		return
 	}
+}
+
+type EnvItem struct {
+	name  string
+	value string
+}
+
+type EnvModel struct {
+	walk.ListModelBase
+	items []EnvItem
+}
+
+func NewEnvModel() *EnvModel {
+	env := os.Environ()
+
+	m := &EnvModel{items: make([]EnvItem, len(env))}
+
+	for i, e := range env {
+		j := strings.Index(e, "=")
+		if j == 0 {
+			continue
+		}
+
+		name := e[0:j]
+		value := strings.Replace(e[j+1:], ";", "\r\n", -1)
+
+		m.items[i] = EnvItem{name, value}
+	}
+
+	return m
+}
+
+func (m *EnvModel) ItemCount() int {
+	return len(m.items)
+}
+
+func (m *EnvModel) Value(index int) interface{} {
+	return m.items[index].name
 }
