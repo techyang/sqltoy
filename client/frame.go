@@ -614,7 +614,6 @@ func InitWin() {
 												Format:      "yyyy/MM/dd",
 												ToolTipText: "请选择查询开始日期",
 											},
-											//TextEdit{Text: "数据库过滤器aaaaaaaaaaaaaabbbbb"},
 										},
 									},
 									Composite{
