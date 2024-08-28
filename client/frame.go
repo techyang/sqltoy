@@ -12,7 +12,7 @@ import (
 func InitWin() {
 
 	tmw := new(TabMainWindow)
-
+	// menu
 	fileMenu := Menu{
 		Text: "&文件",
 		Items: []MenuItem{
