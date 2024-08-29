@@ -554,14 +554,7 @@ func InitWin() {
 										//OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
 										//	OnItemActivated:       mw.lb_ItemActivated,
 									},
-									/*ListBox{
-										ColumnSpan: 2,
-										MinSize:    Size{Width: 20, Height: 200},
-										//AssignTo: &mw.lb,
-										Model: NewEnvModel(),
-										//OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
-										//	OnItemActivated:       mw.lb_ItemActivated,
-									},*/
+
 									HSpacer{RowSpan: 500},
 									HSpacer{},
 									HSpacer{},
