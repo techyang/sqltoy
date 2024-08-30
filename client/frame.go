@@ -13,7 +13,7 @@ func InitWin() {
 
 	tmw := new(TabMainWindow)
 	// menu
-	fileMenu := Menu{
+	/*fileMenu := Menu{
 		Text: "&文件",
 		Items: []MenuItem{
 			Action{
@@ -58,7 +58,7 @@ func InitWin() {
 			Action{
 				Text:        "&保存",
 				Shortcut:    Shortcut{walk.ModControl, walk.KeyS},
-				OnTriggered: tmw.about,
+				OnTriggered: tmw.save,
 			},
 			Action{
 				Text:        "&保存为SQL片段...",
@@ -80,7 +80,7 @@ func InitWin() {
 				OnTriggered: tmw.about,
 			},
 		},
-	}
+	}*/
 
 	if err := (MainWindow{
 		Title:      "SQLTOY",
@@ -102,7 +102,7 @@ func InitWin() {
 		//	},
 		//},
 		MenuItems: []MenuItem{
-			fileMenu,
+
 			Menu{
 				Text: "&文件",
 				Items: []MenuItem{
@@ -146,9 +146,9 @@ func InitWin() {
 						OnTriggered: tmw.about,
 					},
 					Action{
-						Text:        "&保存",
+						Text:        "&保存111",
 						Shortcut:    Shortcut{walk.ModControl, walk.KeyS},
-						OnTriggered: tmw.about,
+						OnTriggered: tmw.save,
 					},
 					Action{
 						Text:        "&保存为SQL片段...",
@@ -809,6 +809,23 @@ func (mw *TabMainWindow) open() {
 	if ok, err := dlg.ShowOpen(mw); err != nil {
 
 		walk.MsgBox(mw, "Open", dlg.FilePath, walk.MsgBoxIconInformation)
+		//mw.edit.AppendText("Error : File Open\r\n")
+		return
+	} else if !ok {
+		//	mw.edit.AppendText("Cancel\r\n")
+		return
+	}
+}
+
+func (mw *TabMainWindow) save() {
+	dlg := new(walk.FileDialog)
+	dlg.Title = "选择文件"
+	dlg.Filter = "SQL文件 (*.sql)|*.sql|文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
+
+	//mw.edit.SetText("") //通过重定向变量设置TextEdit的Text
+	if ok, err := dlg.ShowSave(mw); err != nil {
+
+		//walk.MsgBox(mw, "Open", dlg.FilePath, walk.MsgBoxIconInformation)
 		//mw.edit.AppendText("Error : File Open\r\n")
 		return
 	} else if !ok {
