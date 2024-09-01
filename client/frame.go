@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 // InitWin 初始化界面
@@ -167,7 +168,7 @@ func InitWin() {
 					Action{
 						Text:        "&退出(X)",
 						Shortcut:    Shortcut{walk.ModAlt, walk.KeyF4},
-						OnTriggered: tmw.about,
+						OnTriggered: tmw.close,
 					},
 				},
 			},
@@ -603,7 +604,7 @@ func InitWin() {
 											},
 											DateEdit{
 												MaxSize:     Size{Width: 78},
-												Date:        "2024/08/26",
+												Date:        time.Now(),
 												Format:      "yyyy/MM/dd",
 												ToolTipText: "请选择查询开始日期",
 											},
@@ -794,6 +795,11 @@ func (mw *TabMainWindow) newTab(tabTitle string) *walk.TabPage {
 }
 func (mw *TabMainWindow) about() {
 	walk.MsgBox(mw, "", "SQLTOY\r\n\r\n新一代数据库客户端\r\n", walk.MsgBoxIconInformation)
+}
+
+func (mw *TabMainWindow) close() {
+	mw.Dispose()
+	//mw.close()
 }
 
 func (mw *TabMainWindow) initFileMenu() {
