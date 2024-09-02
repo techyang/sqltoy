@@ -799,7 +799,7 @@ func (mw *TabMainWindow) about() {
 
 func (mw *TabMainWindow) close() {
 	mw.Dispose()
-	//mw.close()
+
 }
 
 func (mw *TabMainWindow) initFileMenu() {
