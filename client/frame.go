@@ -797,6 +797,7 @@ func (mw *TabMainWindow) about() {
 	walk.MsgBox(mw, "", "SQLTOY\r\n\r\n新一代数据库客户端\r\n", walk.MsgBoxIconInformation)
 }
 
+// close the app
 func (mw *TabMainWindow) close() {
 	mw.Dispose()
 
