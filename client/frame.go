@@ -110,16 +110,28 @@ func InitWin() {
 					Action{
 						Text:  "&会话管理器",
 						Image: "/icons/disconnect.png",
-						//OnTriggered: tmw.openCommandManagePanel,
+						OnTriggered: func() {
+							// 创建一个新窗口的实例并打开它
+							newWin := NewCustomWindow(tmw)
+							newWin.Run()
+
+							/*	tp := tmw.newTab(fmt.Sprintf("【%s】从大数据导入", "配置窗口"))
+								_, err := ImportCanFromBigdataPanel(tp, tmw)
+								if err != nil {
+									//mynotify.Error("窗口初始化失败," + err.Error())
+								}*/
+
+							//ImportCanFromBigdataPanel(tmw)
+							//	tmw.DBSessionList(tmw)
+						},
 					},
 					Action{
 						Text: "&连接到",
 						//	OnTriggered: tmw.openRelatedInstructionsPanel,
 					},
 					Action{
-						Text:        "&新建窗口",
-						Shortcut:    Shortcut{walk.ModControl, walk.KeyN},
-						OnTriggered: tmw.about,
+						Text:     "&新建窗口",
+						Shortcut: Shortcut{walk.ModControl, walk.KeyN},
 					},
 					Action{
 						Text:        "&新建查询标签页",
