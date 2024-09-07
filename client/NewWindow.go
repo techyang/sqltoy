@@ -29,20 +29,39 @@ func NewCustomWindow(owner walk.Form) *CustomWindow {
 // Run 显示并运行新窗口
 func (cw *CustomWindow) Run() {
 	var comboBox *walk.ComboBox
+	var dependenceComboBox *walk.ComboBox
 
 	// 选项数据
 	// 选项数据
 	options := []Option{
-		{Key: "A", Value: "AA"},
-		{Key: "B", Value: "BB"},
-		{Key: "C", Value: "CC"},
+		{Key: "01", Value: "MariaDB or MySQL (TCP/IP)"},
+		{Key: "02", Value: "MariaDB or MySQL (named pipe)"},
+		{Key: "03", Value: "MariaDB or MySQL (SSH tunnel)"},
+		{Key: "04", Value: "ProxySQL Admin (Experimental)"},
+		{Key: "05", Value: "MySQL on RDS"},
+		{Key: "06", Value: "Microsoft SQL Server (named pipe) "},
+		{Key: "07", Value: "Microsoft SQL Server (TCP/P)"},
+		{Key: "08", Value: "Microsoft SQL Server (SPX/IPX)"},
+		{Key: "09", Value: "Microsoft SQL Server (Banyan VINES)"},
+		{Key: "10", Value: "Microsoft SQL Server (Windows RPC)"},
+		{Key: "11", Value: "PostgreSQL (TCP/IP)"},
+		{Key: "12", Value: "PostgreSQL (SSH tunnel)"},
 	}
 
 	// 提取显示值以供 ComboBox 使用
-	displayValues := make([]string, len(options))
-	for i, option := range options {
-		displayValues[i] = option.Value
+	displayValues := setOptions(options)
+
+	dependenceLibsOptions := []Option{
+		{Key: "01", Value: "libmariadb.dll"},
+		{Key: "02", Value: "libmysql-6.1.dll"},
+		{Key: "03", Value: "libmysql.dll"},
 	}
+
+	// 提取显示值以供 ComboBox 使用
+	dependenceValues := setOptions(dependenceLibsOptions)
+
+	var checkBox1, checkBox2 *walk.CheckBox
+	//var numberEdit *walk.NumberEdit
 
 	sessions, err := readDataFromFile("data.txt")
 	if err != nil {
@@ -211,11 +230,12 @@ func (cw *CustomWindow) Run() {
 																	Label{
 																		Text: "网络类型：",
 																		//	ToolTip: "Enter text for Tab 2",
+																		MinSize: Size{Width: 100},
 																	},
 																	ComboBox{
 																		AssignTo:     &comboBox,
 																		Model:        displayValues, // 设置下拉列表的选项
-																		CurrentIndex: 1,
+																		CurrentIndex: 0,
 																		OnCurrentIndexChanged: func() {
 																			// 获取当前选择的选项
 																			currentIndex := comboBox.CurrentIndex()
@@ -228,25 +248,193 @@ func (cw *CustomWindow) Run() {
 																		Text: "依赖库：",
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
-																	Label{
-																		Text: "主机名/IP：",
-																		//	ToolTip: "Enter text for Tab 2",
+																	ComboBox{
+																		AssignTo:     &dependenceComboBox,
+																		Model:        dependenceValues, // 设置下拉列表的选项
+																		CurrentIndex: 0,
+																		OnCurrentIndexChanged: func() {
+																			// 获取当前选择的选项
+																			currentIndex := comboBox.CurrentIndex()
+																			if currentIndex >= 0 {
+																				fmt.Printf("Selected: %s\n", options[currentIndex])
+																			}
+																		},
 																	},
 																	Label{
 																		Text: "主机名/IP：",
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
+																	Composite{
+																		Layout: VBox{
+																			Margins:     Margins{Top: 3},
+																			MarginsZero: true,
+																			SpacingZero: true,
+																			//Alignment: AlignHVDefault,
+																			Alignment: AlignHVDefault,
+																		},
+																		Children: []Widget{
+																			LineEdit{
+																				Name: "TextBox3",
+																				//	ToolTip: "Enter text for Tab 3",
+																			},
+																			CheckBox{
+																				AssignTo:  &checkBox1,
+																				Alignment: AlignHVDefault,
+																				Text:      "提提示身份认证", // 第一个复选框的文本
+																				Checked:   false,     // 设置第一个复选框的默认状态（未选中）
+																				OnCheckedChanged: func() {
+																					// 当第一个复选框状态改变时触发
+																					if checkBox1.Checked() {
+																						fmt.Println("Option 1 is checked.")
+																					} else {
+																						fmt.Println("Option 1 is unchecked.")
+																					}
+																				},
+																			},
+																			// 第二个复选框
+																			CheckBox{
+																				AssignTo: &checkBox2,
+																				Text:     "使用Windows 认证", // 第二个复选框的文本
+																				Checked:  false,          // 设置第二个复选框的默认状态（未选中）
+																				OnCheckedChanged: func() {
+																					// 当第二个复选框状态改变时触发
+																					if checkBox2.Checked() {
+																						fmt.Println("Option 2 is checked.")
+																					} else {
+																						fmt.Println("Option 2 is unchecked.")
+																					}
+																				},
+																			},
+																		},
+																	},
+
 																	Label{
 																		Text: "用户：",
 																		//	ToolTip: "Enter text for Tab 2",
+																	},
+																	LineEdit{
+																		Name: "TextBox3",
+																		//	ToolTip: "Enter text for Tab 3",
 																	},
 																	Label{
 																		Text: "密码：",
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
+																	LineEdit{
+																		Name:         "TextBox3",
+																		PasswordMode: true, // 设置为密码模式，输入字符会显示为星号
+																		//	ToolTip: "Enter text for Tab 3",
+																	},
+
 																	Label{
 																		Text: "端口：",
 																		//	ToolTip: "Enter text for Tab 2",
+																	},
+																	// 数字选择框
+
+																	LineEdit{
+																		Name: "TextBox3",
+																		//PasswordMode: true, // 设置为密码模式，输入字符会显示为星号
+																		//	ToolTip: "Enter text for Tab 3",
+																	},
+																	/*NumberEdit{
+																		AssignTo:  &numberEdit,
+																		Value:     3306,  // 初始值
+																		MinValue:  1000,  // 最小值
+																		MaxValue:  10000, // 最大值
+																		Increment: 1,     // 每次增加的值
+
+																	},*/
+																	Label{
+																		Text: "数据库：",
+																		//	ToolTip: "Enter text for Tab 2",
+																	},
+																	LineEdit{
+																		Name: "TextBox3",
+																		//	ToolTip: "Enter text for Tab 3",
+																	},
+																	Label{
+																		Text: "注释：",
+																		//RowSpan: 3,
+																		//	ToolTip: "Enter text for Tab 2",
+																	},
+																	TextEdit{
+																		Name: "TextBox3",
+																		//Text: "TextBox3",
+																		//Row:     5,    // 显示5行高度
+																		VScroll: true, // 垂直滚动条
+																		MaxSize: Size{Height: 100},
+																	},
+																},
+															},
+															Composite{
+																Layout: HBox{
+																	Margins:     Margins{Top: 3},
+																	MarginsZero: true,
+																	SpacingZero: true,
+																	//Alignment: AlignHVDefault,
+																	Alignment: AlignHCenterVCenter,
+																	//Columns:   5,
+																},
+																Children: []Widget{
+																	PushButton{
+																		Text:    "打开",
+																		MinSize: Size{Width: 100},
+																	},
+																	PushButton{
+																		Text:    "取消",
+																		MinSize: Size{Width: 100},
+																	},
+																	Composite{
+																		Layout: HBox{
+																			Margins:     Margins{Top: 3},
+																			MarginsZero: true,
+																			SpacingZero: true,
+																			//Alignment: AlignHVDefault,
+																			Alignment: AlignHCenterVCenter,
+																			//Columns:   5,
+
+																		},
+																		Children: []Widget{
+																			ToolBar{
+																				ButtonStyle: ToolBarButtonImageBeforeText,
+																				Items: []MenuItem{
+																					//ActionRef{&openAction},
+																					Menu{
+																						Text: "    更多    ",
+																						//Image: "/icons/disconnect.png",
+																						Items: []MenuItem{
+																							Action{
+																								Text: "首选项(V)",
+																								//	OnTriggered: mw.newAction_Triggered,
+																							},
+																							Action{
+																								Text: "检查更新(W)..",
+																								//OnTriggered: mw.newAction_Triggered,
+																							},
+																							Action{
+																								Text: "导入配置文件 (X)..",
+																								//OnTriggered: mw.newAction_Triggered,
+																							},
+																							Action{
+																								Text: "导出配置文件(Y)...",
+																								//OnTriggered: mw.newAction_Triggered,
+																							},
+																							Action{
+																								Text: "通用帮助(Z)",
+																								//OnTriggered: mw.newAction_Triggered,
+																							},
+																							Action{
+																								Text: "关于 SQLTOY 12.5.0.6677(H)",
+																								//OnTriggered: mw.newAction_Triggered,
+																							},
+																						},
+																						//OnTriggered: mw.newAction_Triggered,
+
+																					},
+																				},
+																			},
+																		},
 																	},
 																},
 															},
@@ -332,6 +520,14 @@ func (cw *CustomWindow) Run() {
 			},
 		},
 	}.Run(cw.owner)
+}
+
+func setOptions(options []Option) []string {
+	displayValues := make([]string, len(options))
+	for i, option := range options {
+		displayValues[i] = option.Value
+	}
+	return displayValues
 }
 
 // 定义数据模型结构体
