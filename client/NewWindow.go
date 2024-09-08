@@ -30,7 +30,7 @@ func NewCustomWindow(owner walk.Form) *CustomWindow {
 func (cw *CustomWindow) Run() {
 	var comboBox *walk.ComboBox
 	var dependenceComboBox *walk.ComboBox
-
+	//var settings Settings
 	// 选项数据
 	// 选项数据
 	options := []Option{
@@ -71,7 +71,7 @@ func (cw *CustomWindow) Run() {
 	// 创建新窗口的对话框
 	Dialog{
 		AssignTo: &cw.dialog,
-		Title:    "新窗口",
+		Title:    "会话管理器",
 		MinSize:  Size{Width: 800, Height: 600},
 		Layout:   VBox{MarginsZero: true, SpacingZero: true},
 		Children: []Widget{
@@ -309,6 +309,7 @@ func (cw *CustomWindow) Run() {
 																	},
 
 																	Label{
+
 																		Text: "用户：",
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
@@ -649,4 +650,13 @@ func readDataFromFile(filename string) ([]Session, error) {
 type Option struct {
 	Key   string // 实际取值
 	Value string // 显示值
+}
+
+type Settings struct {
+	netType       string // 网络类型
+	dependenceLib string // 依赖库
+	hosts         string // 主机/IP
+	user          string //用户
+	port          string // 端口
+
 }
