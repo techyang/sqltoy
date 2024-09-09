@@ -32,7 +32,7 @@ func (cw *CustomWindow) Run() {
 	var dependenceComboBox *walk.ComboBox
 	//var settings Settings
 	// 选项数据
-	// 选项数据
+
 	options := []Option{
 		{Key: "01", Value: "MariaDB or MySQL (TCP/IP)"},
 		{Key: "02", Value: "MariaDB or MySQL (named pipe)"},
