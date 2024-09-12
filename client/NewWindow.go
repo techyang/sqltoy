@@ -26,39 +26,63 @@ func NewCustomWindow(owner walk.Form) *CustomWindow {
 	}
 }
 
+var LIB_OPTIONS = []Option{
+	{Key: "01", Value: "libmariadb.dll"},
+	{Key: "02", Value: "libmysql-6.1.dll"},
+	{Key: "03", Value: "libmysql.dll"},
+}
+
+var NET_TYPE_OPTIONS = []Option{
+	{Key: "01", Value: "MariaDB or MySQL (TCP/IP)"},
+	{Key: "02", Value: "MariaDB or MySQL (named pipe)"},
+	{Key: "03", Value: "MariaDB or MySQL (SSH tunnel)"},
+	{Key: "04", Value: "ProxySQL Admin (Experimental)"},
+	{Key: "05", Value: "MySQL on RDS"},
+	{Key: "06", Value: "Microsoft SQL Server (named pipe) "},
+	{Key: "07", Value: "Microsoft SQL Server (TCP/P)"},
+	{Key: "08", Value: "Microsoft SQL Server (SPX/IPX)"},
+	{Key: "09", Value: "Microsoft SQL Server (Banyan VINES)"},
+	{Key: "10", Value: "Microsoft SQL Server (Windows RPC)"},
+	{Key: "11", Value: "PostgreSQL (TCP/IP)"},
+	{Key: "12", Value: "PostgreSQL (SSH tunnel)"},
+}
+
+// 从数据选项数组构建下拉框model
+func GetOptionsModel(options []Option) []*Option {
+	ptrs := make([]*Option, len(options)) // 创建一个指针切片，长度与参数切片相同
+
+	for i := range options {
+		ptrs[i] = &options[i] // 将每个 Option 的地址存入指针切片
+	}
+
+	return ptrs
+}
+
+var settings = *new(Settings)
+var dataBinder *walk.DataBinder
+
 // Run 显示并运行新窗口
 func (cw *CustomWindow) Run() {
 	var comboBox *walk.ComboBox
 	var dependenceComboBox *walk.ComboBox
-	//var settings Settings
+	var userLineEdit, hostLineEdit *walk.LineEdit
+	//var sessionNameLineEdit  *walk.LineEdit
+	var remarkLineEdit *walk.TextEdit
+
+	settings.User = "HelloKitty"
 	// 选项数据
 
-	options := []Option{
-		{Key: "01", Value: "MariaDB or MySQL (TCP/IP)"},
-		{Key: "02", Value: "MariaDB or MySQL (named pipe)"},
-		{Key: "03", Value: "MariaDB or MySQL (SSH tunnel)"},
-		{Key: "04", Value: "ProxySQL Admin (Experimental)"},
-		{Key: "05", Value: "MySQL on RDS"},
-		{Key: "06", Value: "Microsoft SQL Server (named pipe) "},
-		{Key: "07", Value: "Microsoft SQL Server (TCP/P)"},
-		{Key: "08", Value: "Microsoft SQL Server (SPX/IPX)"},
-		{Key: "09", Value: "Microsoft SQL Server (Banyan VINES)"},
-		{Key: "10", Value: "Microsoft SQL Server (Windows RPC)"},
-		{Key: "11", Value: "PostgreSQL (TCP/IP)"},
-		{Key: "12", Value: "PostgreSQL (SSH tunnel)"},
-	}
-
 	// 提取显示值以供 ComboBox 使用
-	displayValues := setOptions(options)
+	//netTypedisplayValues := getOptionDisplayValues(NET_TYPE_OPTIONS)
 
-	dependenceLibsOptions := []Option{
+	/*	dependenceLibsOptions := []Option{
 		{Key: "01", Value: "libmariadb.dll"},
 		{Key: "02", Value: "libmysql-6.1.dll"},
 		{Key: "03", Value: "libmysql.dll"},
-	}
+	}*/
 
 	// 提取显示值以供 ComboBox 使用
-	dependenceValues := setOptions(dependenceLibsOptions)
+	//dependenceValues := getOptionDisplayValues(LIB_OPTIONS)
 
 	var checkBox1, checkBox2 *walk.CheckBox
 	//var numberEdit *walk.NumberEdit
@@ -74,6 +98,7 @@ func (cw *CustomWindow) Run() {
 		Title:    "会话管理器",
 		MinSize:  Size{Width: 800, Height: 600},
 		Layout:   VBox{MarginsZero: true, SpacingZero: true},
+
 		Children: []Widget{
 			HSplitter{
 				Children: []Widget{
@@ -115,6 +140,17 @@ func (cw *CustomWindow) Run() {
 											{Name: "Host", Title: "主机", Width: 120, Alignment: AlignCenter},
 											{Name: "LastConnectTime", Title: "上次连接", Alignment: AlignCenter, Width: 60},
 											{Name: "Remark", Title: "注释", Alignment: AlignCenter, Width: 60},
+										},
+										// 处理条目选中事件
+										OnCurrentIndexChanged: func() {
+											currentIndex := cw.dbLinkTable.CurrentIndex()
+											if currentIndex >= 0 {
+												selectedItem := model.items[currentIndex]
+												fmt.Printf("Selected Item: %+v\n", selectedItem)
+												settings.User = "设置后的用户名"
+												remarkLineEdit.SetText(selectedItem.Remark)
+												hostLineEdit.SetText(selectedItem.Host)
+											}
 										},
 									},
 								},
@@ -207,6 +243,13 @@ func (cw *CustomWindow) Run() {
 											//Alignment: AlignHVDefault,
 											Alignment: AlignHCenterVCenter,
 										},
+										DataBinder: DataBinder{
+											AssignTo:       &dataBinder,
+											Name:           "settings",
+											DataSource:     settings,
+											ErrorPresenter: ToolTipErrorPresenter{},
+											AutoSubmit:     true,
+										},
 										Children: []Widget{
 											// 创建 TabWidget
 											TabWidget{
@@ -233,14 +276,19 @@ func (cw *CustomWindow) Run() {
 																		MinSize: Size{Width: 100},
 																	},
 																	ComboBox{
-																		AssignTo:     &comboBox,
-																		Model:        displayValues, // 设置下拉列表的选项
-																		CurrentIndex: 0,
+																		AssignTo: &comboBox,
+																		//Model:        netTypedisplayValues, // 设置下拉列表的选项
+																		Value:         Bind("DependenceLib", SelRequired{}),
+																		BindingMember: "Key",
+																		DisplayMember: "Value",
+																		Model:         GetOptionsModel(NET_TYPE_OPTIONS),
+																		CurrentIndex:  0,
 																		OnCurrentIndexChanged: func() {
 																			// 获取当前选择的选项
 																			currentIndex := comboBox.CurrentIndex()
 																			if currentIndex >= 0 {
-																				fmt.Printf("Selected: %s\n", options[currentIndex])
+																				//	fmt.Printf("Selected: %s\n", comboBox.DisplayMember())
+
 																			}
 																		},
 																	},
@@ -249,19 +297,35 @@ func (cw *CustomWindow) Run() {
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
 																	ComboBox{
-																		AssignTo:     &dependenceComboBox,
-																		Model:        dependenceValues, // 设置下拉列表的选项
+																		AssignTo: &dependenceComboBox,
+																		//Model:        dependenceValues, // 设置下拉列表的选项
 																		CurrentIndex: 0,
+																		//Value:        Bind("DependenceLib"),
+																		//BindingMember: "Key",
+																		//	DisplayMember: "Value",
+																		Value:         Bind("DependenceLib", SelRequired{}),
+																		BindingMember: "Key",
+																		DisplayMember: "Value",
+																		Model:         GetOptionsModel(LIB_OPTIONS),
+
 																		OnCurrentIndexChanged: func() {
 																			// 获取当前选择的选项
 																			currentIndex := comboBox.CurrentIndex()
 																			if currentIndex >= 0 {
-																				fmt.Printf("Selected: %s\n", options[currentIndex])
+																				if err := dataBinder.Submit(); err != nil {
+																					log.Print(err)
+																					return
+																				}
+																				//	fmt.Printf("Selected index DependenceLib %s", dependenceComboBox.Text())
+																				//	settings.DependenceLib = dependenceComboBox.Text()
+
 																			}
 																		},
 																	},
 																	Label{
-																		Text: "主机名/IP：",
+
+																		Text:      "主机名/IP：",
+																		Alignment: AlignHNearVNear, // 设置控件顶端对齐
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
 																	Composite{
@@ -270,18 +334,19 @@ func (cw *CustomWindow) Run() {
 																			MarginsZero: true,
 																			SpacingZero: true,
 																			//Alignment: AlignHVDefault,
-																			Alignment: AlignHVDefault,
+																			Alignment: AlignHNearVNear,
 																		},
 																		Children: []Widget{
 																			LineEdit{
-																				Name: "TextBox3",
+																				Name:     "hostLineEdit",
+																				AssignTo: &hostLineEdit,
 																				//	ToolTip: "Enter text for Tab 3",
 																			},
 																			CheckBox{
-																				AssignTo:  &checkBox1,
-																				Alignment: AlignHVDefault,
-																				Text:      "提提示身份认证", // 第一个复选框的文本
-																				Checked:   false,     // 设置第一个复选框的默认状态（未选中）
+																				AssignTo: &checkBox1,
+																				//Alignment: AlignHVDefault,
+																				Text:    "提提示身份认证", // 第一个复选框的文本
+																				Checked: false,     // 设置第一个复选框的默认状态（未选中）
 																				OnCheckedChanged: func() {
 																					// 当第一个复选框状态改变时触发
 																					if checkBox1.Checked() {
@@ -314,7 +379,9 @@ func (cw *CustomWindow) Run() {
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
 																	LineEdit{
-																		Name: "TextBox3",
+																		AssignTo: &userLineEdit,
+																		Name:     "TextBox3",
+																		Text:     Bind("User"),
 																		//	ToolTip: "Enter text for Tab 3",
 																	},
 																	Label{
@@ -354,13 +421,16 @@ func (cw *CustomWindow) Run() {
 																		Name: "TextBox3",
 																		//	ToolTip: "Enter text for Tab 3",
 																	},
+																	//sessionNameLineEdit ,hostLineEdit ,remarkLineEdit
 																	Label{
 																		Text: "注释：",
 																		//RowSpan: 3,
 																		//	ToolTip: "Enter text for Tab 2",
 																	},
 																	TextEdit{
-																		Name: "TextBox3",
+																		//AssignTo: &remarkLineEdit,
+																		AssignTo: &remarkLineEdit,
+																		Name:     "TextBox3",
 																		//Text: "TextBox3",
 																		//Row:     5,    // 显示5行高度
 																		VScroll: true, // 垂直滚动条
@@ -381,6 +451,15 @@ func (cw *CustomWindow) Run() {
 																	PushButton{
 																		Text:    "打开",
 																		MinSize: Size{Width: 100},
+																		OnClicked: func() {
+																			if err := dataBinder.Submit(); err != nil {
+																				log.Print(err)
+																				return
+																			}
+																			fmt.Printf("Selected DependenceLib %s", settings.DependenceLib)
+																			fmt.Printf("Selected User %s", settings.User)
+																			//dlg.Accept()
+																		},
 																	},
 																	PushButton{
 																		Text:    "取消",
@@ -523,7 +602,15 @@ func (cw *CustomWindow) Run() {
 	}.Run(cw.owner)
 }
 
-func setOptions(options []Option) []string {
+func ColumnSortable2() walk.KeyEventHandler {
+	if err := dataBinder.Submit(); err != nil {
+		log.Print(err)
+	}
+	log.Print(settings.User)
+	return nil
+}
+
+func getOptionDisplayValues(options []Option) []string {
 	displayValues := make([]string, len(options))
 	for i, option := range options {
 		displayValues[i] = option.Value
@@ -653,10 +740,10 @@ type Option struct {
 }
 
 type Settings struct {
-	netType       string // 网络类型
-	dependenceLib string // 依赖库
-	hosts         string // 主机/IP
-	user          string //用户
-	port          string // 端口
+	NetType       string // 网络类型
+	DependenceLib string // 依赖库
+	Hosts         string // 主机/IP
+	User          string //用户
+	Port          string // 端口
 
 }
