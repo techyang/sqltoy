@@ -1,6 +1,8 @@
 package client
 
 import (
+	"database/sql"
+	"fmt"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 	"log"
@@ -9,80 +11,181 @@ import (
 	"time"
 )
 
+func NewTreeViewModel(rootNodes []*TreeNode) *TreeViewModel {
+	tvm := new(TreeViewModel)
+	tvm.rootNodes = rootNodes
+	return tvm
+}
+
+// 创建一个示例数据结构
+func createSampleData() []*TreeNode {
+	// 第一级：数据库会话名称
+	session1 := &TreeNode{Title: "Session 1"}
+	session2 := &TreeNode{Title: "Session 2"}
+
+	// 第二级：数据量列表
+	dataList1 := &TreeNode{Title: "Data List 1"}
+	dataList2 := &TreeNode{Title: "Data List 2"}
+
+	// 第三级：表列表
+	tableList1 := &TreeNode{Title: "Table 1"}
+	tableList2 := &TreeNode{Title: "Table 2"}
+
+	// 构建树结构
+	session1.Children = []*TreeNode{dataList1, dataList2}
+	session2.Children = []*TreeNode{&TreeNode{Title: "Data List 3"}}
+	dataList1.Children = []*TreeNode{tableList1, tableList2}
+
+	return []*TreeNode{session1, session2}
+}
+
+type MyTreeView struct {
+	walk.TreeView
+	//items []OrganizationTreeModel
+}
+
+type VehicleTypeAddForm struct {
+	*walk.Composite
+
+	parent  walk.Container
+	mainWin *TabMainWindow
+
+	scroll *walk.ScrollView
+
+	treeView            *walk.TreeView
+	orgNameEdit         *walk.LineEdit
+	vehicleTypeNameEdit *walk.LineEdit
+	//notIntelligentRB         *walk.RadioButton
+	//intelligentRB            *walk.RadioButton
+	notFilterMissingColumnRB *walk.RadioButton
+	filterMissingColumnRB    *walk.RadioButton
+
+	canGroup *walk.Composite
+
+	chb []*walk.CheckBox
+	le  []*walk.LineEdit
+	ne  []*walk.NumberEdit
+
+	addVhBtn *walk.PushButton
+}
+
+func NewOrganizationTreeModel2() *OrganizationTreeModel {
+	model := new(OrganizationTreeModel)
+
+	org1 := NewOrganization("1", "abc", nil)
+	org11 := NewOrganization("11", "abc11", org1)
+	org12 := NewOrganization("12", "abc22", org1)
+	org11.Text()
+	org12.Text()
+	model.roots = append(model.roots, org1)
+	model.roots = append(model.roots, NewOrganization("2", "dsfsdfsd", nil))
+	/*	orgs: = new Organization()
+		if err != nil {
+			return nil, err
+		}
+
+		for i := 0; i < len(orgs); i++ {
+			if orgs[i] == nil {
+				continue
+			}
+			model.roots = append(model.roots, NewOrganization(orgs[i].Id, orgs[i].OrgName, nil))
+		}*/
+
+	return model
+}
+
+func NewOrganizationTreeModel() (*OrganizationTreeModel, error) {
+	model := new(OrganizationTreeModel)
+
+	/*	orgs, err := (&OrganizationEntity{SearchKey: ""}).ListSubOrg()
+		if err != nil {
+			return nil, err
+		}*/
+
+	db, err := OpenDB()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sqlStr := `SHOW DATABASES `
+
+	stmt, err := db.Prepare(sqlStr)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	var rows *sql.Rows
+	rows, err = stmt.Query()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var databases []string
+	for rows.Next() {
+		var dbName string
+		if err := rows.Scan(&dbName); err != nil {
+			log.Fatal(err)
+		}
+		databases = append(databases, dbName)
+		model.roots = append(model.roots, NewOrganization(dbName, dbName, nil))
+		fmt.Println("- " + dbName)
+	}
+
+	/*for i := 0; i < len(orgs); i++ {
+		if orgs[i] == nil {
+			continue
+		}
+		model.roots = append(model.roots, NewOrganization(orgs[i].Id, orgs[i].OrgName, nil))
+	}*/
+
+	return model, nil
+}
+
+// 假设 tv 是一个 *walk.TreeView 实例，model 是一个 walk.TreeModel 实例
+
+func (tv *MyTreeView) expandAllNodes(model walk.TreeModel) {
+	// 获取子节点的数量
+	count := model.RootCount()
+
+	for i := 0; i < count; i++ {
+		// 获取子节点
+		child := model.RootAt(i)
+
+		// 展开该节点
+		tv.SetExpanded(child, true)
+
+		// 递归展开所有子节点
+		//expandAllNodes( model)
+	}
+}
+
 // InitWin 初始化界面
 func InitWin() {
 
-	tmw := new(TabMainWindow)
-	// menu
-	/*fileMenu := Menu{
-		Text: "&文件",
-		Items: []MenuItem{
-			Action{
-				Text:  "&会话管理器",
-				Image: "/icons/disconnect.png",
-				//OnTriggered: tmw.openCommandManagePanel,
-			},
-			Action{
-				Text: "&连接到",
-				//	OnTriggered: tmw.openRelatedInstructionsPanel,
-			},
-			Action{
-				Text:        "&新建窗口",
-				Shortcut:    Shortcut{walk.ModControl, walk.KeyN},
-				OnTriggered: tmw.about,
-			},
-			Action{
-				Text:        "&新建查询标签页",
-				Shortcut:    Shortcut{walk.ModControl, walk.KeyT},
-				OnTriggered: tmw.about,
-			},
-			Action{
-				Text:        "&关闭查询标签页",
-				Shortcut:    Shortcut{walk.ModControl, walk.KeyF4},
-				OnTriggered: tmw.about,
-			},
-			Action{
-				Text: "&关闭所有查询标签页",
-				//Shortcut:    Shortcut{walk.ModControl, walk.KeyN},
-				OnTriggered: tmw.about,
-			},
-			Separator{},
-			Action{
-				Text:        "&加载SQL文件...",
-				Shortcut:    Shortcut{walk.ModControl, walk.KeyO},
-				OnTriggered: tmw.open,
-			},
-			Action{
-				Text:        "&运行SQL文件...",
-				OnTriggered: tmw.about,
-			},
-			Action{
-				Text:        "&保存",
-				Shortcut:    Shortcut{walk.ModControl, walk.KeyS},
-				OnTriggered: tmw.save,
-			},
-			Action{
-				Text:        "&保存为SQL片段...",
-				OnTriggered: tmw.about,
-			},
-			Separator{},
-			Action{
-				Text:        "&导出配置文件...",
-				OnTriggered: tmw.about,
-			},
-			Action{
-				Text:        "&导入配置文件...",
-				OnTriggered: tmw.about,
-			},
-			Separator{},
-			Action{
-				Text:        "&退出(X)",
-				Shortcut:    Shortcut{walk.ModAlt, walk.KeyF4},
-				OnTriggered: tmw.about,
-			},
-		},
-	}*/
+	tvm := new(TreeViewModel)
+	tvm.rootNodes = createSampleData()
 
+	tmw := new(TabMainWindow)
+
+	/*	var model = new(OrganizationTreeModel)
+		p := NewOrganization("222", "orgs[i].OrgName2222", nil)
+		NewOrganization("222-1", "orgs[i].OrgName2222", p)
+		NewOrganization("222-2", "orgs[i].OrgName2222", p)
+		model.roots = append(model.roots, NewOrganization("111", "orgs[i].OrgName111", nil))
+		model.roots = append(model.roots, p)*/
+	//treeView.SetModel(model)
+	//vtaf := &VehicleTypeAddForm{}
+	treeModel, err := NewOrganizationTreeModel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	//vtaf.treeView.SetModel(treeModel)
+	var treeView = new(MyTreeView)
+	treeView.SetModel(treeModel)
+	treeView.expandAllNodes(treeModel)
 	if err := (MainWindow{
 		Title:      "SQLTOY",
 		AssignTo:   &tmw.MainWindow,
@@ -559,14 +662,24 @@ func InitWin() {
 									//HSpacer{},
 									TextEdit{Text: "数据库过滤器", MaxSize: Size{Width: 20, Height: 10}, RowSpan: 1},
 									TextEdit{Text: "表过滤器"},
-									ListBox{
+									TreeView{
+										//AssignTo: &treeView,
+										Model: treeView.Model(),
+										OnCurrentItemChanged: func() {
+											//org := treeView.CurrentItem().(*Organization)
+											//log.Print(org)
+										},
+										ColumnSpan: 2,
+										MinSize:    Size{Height: 500},
+									},
+									/*ListBox{
 										ColumnSpan: 2,
 										//AssignTo: &mw.lb,
 										MinSize: Size{Width: 20, Height: 800},
 										Model:   NewEnvModel(),
 										//OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
 										//	OnItemActivated:       mw.lb_ItemActivated,
-									},
+									},*/
 
 									HSpacer{RowSpan: 500},
 									HSpacer{},
@@ -889,4 +1002,61 @@ func (m *EnvModel) ItemCount() int {
 
 func (m *EnvModel) Value(index int) interface{} {
 	return m.items[index].name
+}
+
+// TreeNode 表示树的节点
+type TreeNode struct {
+	Title    string
+	Children []*TreeNode
+}
+
+// TreeViewModel 用于将 TreeNode 数据绑定到 TreeView
+type TreeViewModel struct {
+	walk.TreeModel
+	rootNodes []*TreeNode
+}
+
+func (tvm *TreeViewModel) Count() int {
+	return len(tvm.rootNodes)
+}
+
+func (tvm *TreeViewModel) Value(index int) interface{} {
+	return tvm.rootNodes[index]
+}
+
+func (tvm *TreeViewModel) Parent(index int) int {
+	node := tvm.rootNodes[index]
+	if node == nil {
+		return -1
+	}
+	return -1
+}
+
+func (tvm *TreeViewModel) Index(parent int, childIndex int, childCount int) int {
+	if parent == -1 {
+		return childIndex
+	}
+	parentNode := tvm.rootNodes[parent]
+	if childIndex >= childCount {
+		return -1
+	}
+	for i, child := range parentNode.Children {
+		log.Print(child.Title)
+		if i == childIndex {
+			return len(tvm.rootNodes) + i
+		}
+	}
+	return -1
+}
+
+func (tvm *TreeViewModel) ChildCount(index int) int {
+	node := tvm.rootNodes[index]
+	if node == nil {
+		return 0
+	}
+	return len(node.Children)
+}
+
+func (tvm *TreeViewModel) Data() interface{} {
+	return nil
 }

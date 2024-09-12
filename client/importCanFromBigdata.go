@@ -338,7 +338,7 @@ func NewTargetCanModel() *TargetCanTable {
 
 // Value Called by the TableView when it needs the text to display for a given cell.
 
-// SetChecked Called by the TableView when the user toggled the check box of a given row.
+// SetChecked Called by the TableView when the User toggled the check box of a given row.
 
 // ResetRows
 func (m *TargetCanTable) ResetRows() {
