@@ -162,6 +162,8 @@ func (tv *MyTreeView) expandAllNodes(model walk.TreeModel) {
 	}
 }
 
+var lnTextEdit LineNumberTextEdit
+
 // InitWin 初始化界面
 func InitWin() {
 
@@ -186,6 +188,7 @@ func InitWin() {
 	var treeView = new(MyTreeView)
 	treeView.SetModel(treeModel)
 	treeView.expandAllNodes(treeModel)
+
 	if err := (MainWindow{
 		Title:      "SQLTOY",
 		AssignTo:   &tmw.MainWindow,
@@ -239,7 +242,7 @@ func InitWin() {
 					Action{
 						Text:        "&新建查询标签页",
 						Shortcut:    Shortcut{walk.ModControl, walk.KeyT},
-						OnTriggered: tmw.about,
+						OnTriggered: tmw.AddVehicleType,
 					},
 					Action{
 						Text:        "&关闭查询标签页",
@@ -551,7 +554,7 @@ func InitWin() {
 			Items: []MenuItem{
 				//ActionRef{&openAction},
 				Menu{
-					Text:  "New A",
+					Text:  "会话管理器",
 					Image: "/icons/disconnect.png",
 					Items: []MenuItem{
 						Action{
@@ -571,19 +574,32 @@ func InitWin() {
 				},
 				Separator{},
 				Menu{
-					Text:  "View",
+					Text:  "运行",
 					Image: "../img/document-properties.png",
 					Items: []MenuItem{
 						Action{
-							Text: "X",
+							Text:     "运行(V)",
+							Shortcut: Shortcut{Key: walk.KeyF9},
 							//OnTriggered: mw.changeViewAction_Triggered,
 						},
 						Action{
-							Text: "Y",
+							Text:     "执行选择的部分(W)",
+							Shortcut: Shortcut{Key: walk.KeyF1},
 							//	OnTriggered: mw.changeViewAction_Triggered,
 						},
 						Action{
-							Text: "Z",
+							Text: "执行当前查询(X)",
+							//	OnTriggered: mw.changeViewAction_Triggered,
+							Shortcut: Shortcut{Modifiers: walk.ModControl | walk.ModShift, Key: walk.KeyF9},
+						},
+						Separator{},
+						Action{
+							Text:    "逐个发上查询(Y)",
+							Checked: true,
+							//	OnTriggered: mw.changeViewAction_Triggered,
+						},
+						Action{
+							Text: "一次性发送批处理(Z)",
 							//	OnTriggered: mw.changeViewAction_Triggered,
 						},
 					},
@@ -751,7 +767,10 @@ func InitWin() {
 													SpacingZero: true,
 												},
 												Children: []Widget{
-
+													TabWidget{
+														//Background: TransparentBrush{},
+														AssignTo: &tmw.TabWidget,
+													},
 													TableView{
 														//AssignTo:         &cfc.previewCanTbl,
 														AlternatingRowBG: true,
@@ -844,6 +863,7 @@ func InitWin() {
 	//InitVehicleTypePage(tmw)
 	//tmw.newTab("设置")
 	//tmw.newTab("我的")
+	tmw.AddVehicleType()
 	tmw.Run()
 
 }
@@ -857,26 +877,64 @@ type TabMainWindow struct {
 	helpMenu       *walk.Menu
 }
 
-func InitVehicleTypePage(tmw *TabMainWindow) {
-	tp, err := walk.NewTabPage()
+func (mw *TabMainWindow) AddVehicleType() {
+	tp := mw.newTab("查询  X")
+	_, err := NewVehicleTypeAddPage(tp, mw)
 	if err != nil {
-		log.Fatal(err)
+		//mynotify.Error("窗口初始化失败," + err.Error())
 	}
-	tp.SetWidth(50)
-	if (tp.SetTitle(" 主页 ")); err != nil {
-		log.Fatal(err)
+}
+
+func NewVehicleTypeAddPage(parent walk.Container, mw *TabMainWindow) (*VehicleTypeAddForm, error) {
+	vtaf := &VehicleTypeAddForm{}
+
+	if err := (Composite{
+		AssignTo: &vtaf.Composite,
+		Layout:   HBox{},
+		Children: []Widget{
+			TextEdit{
+				Text: "select * from tableName",
+			},
+			//Composite{
+			//	AssignTo: &lnTextEdit.Composite,
+			/*Create: func() error {
+				var err error
+				lnTextEdit, err = NewLineNumberTextEdit(nil)
+				return err
+			},*/
+			//},
+			//	LineNumberTextEdit{},
+			/*TreeView{
+				MaxSize:  Size{Width: 320},
+				MinSize:  Size{Width: 320},
+				AssignTo: &vtaf.treeView,
+				//Model:    treeModel,
+				OnCurrentItemChanged: func() {
+					org := vtaf.treeView.CurrentItem().(*Organization)
+					vtaf.orgNameEdit.SetText(org.orgName)
+				},
+			},*/
+
+		},
+	}).Create(NewBuilder(parent)); err != nil {
+		return nil, err
 	}
 
-	tp.SetLayout(walk.NewHBoxLayout())
+	vtaf.mainWin = mw
+	vtaf.parent = parent
 
-	if err := tmw.TabWidget.Pages().Add(tp); err != nil {
-		log.Fatal(err)
-	}
+	//vtaf.notIntelligentRB.SetChecked(true)
+	//vtaf.notFilterMissingColumnRB.SetChecked(true)
 
-	if err := tmw.TabWidget.SetCurrentIndex(tmw.TabWidget.Pages().Len() - 1); err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		//treeModel, err := NewOrganizationTreeModel()
+		//if err != nil {
+		//log.Fatal(err)
+		//}
+		//vtaf.treeView.SetModel(treeModel)
+	}()
 
+	return vtaf, nil
 }
 
 func (mw *TabMainWindow) openCanConfig(url string) func() {
@@ -918,6 +976,38 @@ func (mw *TabMainWindow) newTab(tabTitle string) *walk.TabPage {
 
 	return tp
 }
+
+// 创建新页面
+func (mw *TabMainWindow) newTab2(tabTitle string) *walk.TabPage {
+	tabPage, _ := walk.NewTabPage()
+	tabPage.SetTitle(tabTitle)
+
+	// 创建一个关闭按钮
+	closeButton, _ := walk.NewPushButton(tabPage)
+	closeButton.SetText("x")
+	closeButton.Clicked().Attach(func() {
+		index := mw.TabWidget.Pages().Index(tabPage)
+		if index != -1 {
+			mw.TabWidget.Pages().Remove(tabPage) // 移除选项卡
+		}
+	})
+
+	// 创建一个水平布局
+	composite, _ := walk.NewComposite(tabPage)
+	layout := walk.NewHBoxLayout()
+	composite.SetLayout(layout)
+
+	// 将标签和关闭按钮添加到 Composite 中
+	titleLabel, _ := walk.NewLabel(composite)
+	titleLabel.SetText(tabTitle)
+
+	layout.StretchFactor(titleLabel)
+	layout.StretchFactor(closeButton)
+	//layout.AddWidget(closeButton)
+
+	return tabPage
+}
+
 func (mw *TabMainWindow) about() {
 	walk.MsgBox(mw, "", "SQLTOY\r\n\r\n新一代数据库客户端\r\n", walk.MsgBoxIconInformation)
 }
@@ -1059,4 +1149,58 @@ func (tvm *TreeViewModel) ChildCount(index int) int {
 
 func (tvm *TreeViewModel) Data() interface{} {
 	return nil
+}
+
+type LineNumberTextEdit struct {
+	*walk.Composite
+	textEdit *walk.TextEdit
+	listBox  *walk.ListBox
+}
+
+func (ln *LineNumberTextEdit) Create(builder *Builder) error {
+	//TODO implement me
+	//panic("implement me")
+	return nil
+}
+
+func NewLineNumberTextEdit(parent walk.Container) (*LineNumberTextEdit, error) {
+	lnTextEdit := new(LineNumberTextEdit)
+	var err error
+
+	if lnTextEdit.Composite, err = walk.NewComposite(parent); err != nil {
+		return nil, err
+	}
+
+	layout := walk.NewHBoxLayout()
+	layout.SetMargins(walk.Margins{5, 5, 5, 5})
+	lnTextEdit.SetLayout(layout)
+
+	if lnTextEdit.listBox, err = walk.NewListBox(lnTextEdit); err != nil {
+		return nil, err
+	}
+
+	//lnTextEdit.listBox.SetFixedWidth(30)
+
+	if lnTextEdit.textEdit, err = walk.NewTextEdit(lnTextEdit); err != nil {
+		return nil, err
+	}
+
+	//lnTextEdit.textEdit.SetMultiline(true)
+	lnTextEdit.textEdit.TextChanged().Attach(func() {
+		lnTextEdit.updateLineNumbers()
+	})
+	lnTextEdit.textEdit.SetText("ddddddddddddddddd")
+	return lnTextEdit, nil
+}
+
+func (ln *LineNumberTextEdit) updateLineNumbers() {
+	text := ln.textEdit.Text()
+	lines := strings.Count(text, "\n") + 1
+
+	var lineNumbers []string
+	for i := 1; i <= lines; i++ {
+		lineNumbers = append(lineNumbers, "1")
+	}
+
+	ln.listBox.SetModel(lineNumbers)
 }
