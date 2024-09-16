@@ -943,7 +943,7 @@ func (mw *TabMainWindow) openCanConfig(url string) func() {
 	}
 }
 
-// 创建新页面
+// 创建新tab页面
 func (mw *TabMainWindow) newTab(tabTitle string) *walk.TabPage {
 	tp, err := walk.NewTabPage()
 	if err != nil {
