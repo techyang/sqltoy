@@ -895,26 +895,6 @@ func NewVehicleTypeAddPage(parent walk.Container, mw *TabMainWindow) (*VehicleTy
 			TextEdit{
 				Text: "select * from tableName",
 			},
-			//Composite{
-			//	AssignTo: &lnTextEdit.Composite,
-			/*Create: func() error {
-				var err error
-				lnTextEdit, err = NewLineNumberTextEdit(nil)
-				return err
-			},*/
-			//},
-			//	LineNumberTextEdit{},
-			/*TreeView{
-				MaxSize:  Size{Width: 320},
-				MinSize:  Size{Width: 320},
-				AssignTo: &vtaf.treeView,
-				//Model:    treeModel,
-				OnCurrentItemChanged: func() {
-					org := vtaf.treeView.CurrentItem().(*Organization)
-					vtaf.orgNameEdit.SetText(org.orgName)
-				},
-			},*/
-
 		},
 	}).Create(NewBuilder(parent)); err != nil {
 		return nil, err
