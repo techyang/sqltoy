@@ -903,9 +903,6 @@ func NewVehicleTypeAddPage(parent walk.Container, mw *TabMainWindow) (*VehicleTy
 	vtaf.mainWin = mw
 	vtaf.parent = parent
 
-	//vtaf.notIntelligentRB.SetChecked(true)
-	//vtaf.notFilterMissingColumnRB.SetChecked(true)
-
 	go func() {
 		//treeModel, err := NewOrganizationTreeModel()
 		//if err != nil {
