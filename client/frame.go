@@ -917,12 +917,14 @@ func NewVehicleTypeAddPage(parent walk.Container, mw *TabMainWindow) (*VehicleTy
 func (mw *TabMainWindow) openCanConfig(url string) func() {
 	return func() {
 		//RunBuiltinWebView(url)
+
 	}
 }
 
 // 创建新tab页面
 func (mw *TabMainWindow) newTab(tabTitle string) *walk.TabPage {
 	tp, err := walk.NewTabPage()
+	// 错误处理
 	if err != nil {
 		log.Fatal(err)
 	}
