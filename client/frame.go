@@ -164,6 +164,88 @@ func (tv *MyTreeView) expandAllNodes(model walk.TreeModel) {
 
 var lnTextEdit LineNumberTextEdit
 
+// MySQL connection parameters
+const (
+	USER     = "root"          // MySQL username
+	PASSWORD = "password"      // MySQL password
+	HOST     = "localhost"     // MySQL server host
+	DATABASE = "your_database" // Database name
+)
+
+// DataModel to be used in TableView
+type DataModel struct {
+	walk.TableModelBase
+	items   []map[string]interface{}
+	columns []string
+}
+
+func (m *DataModel) RowCount() int {
+	return len(m.items)
+}
+
+func (m *DataModel) Value(row, col int) interface{} {
+	return m.items[row][m.columns[col]]
+}
+
+func (m *DataModel) ColumnCount() int {
+	return len(m.columns)
+}
+
+func (m *DataModel) ResetData(newItems []map[string]interface{}, newColumns []string) {
+	m.items = newItems
+	m.columns = newColumns
+	m.PublishRowsReset()
+	m.PublishRowsChanged(0, len(newItems)-1)
+	m.PublishRowsReset()
+}
+
+// Fetch data from MySQL using the provided query
+func fetchDataFromMySQL(query string) ([]map[string]interface{}, []string, error) {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", USER, PASSWORD, HOST, DATABASE)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	// Get column names
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var results []map[string]interface{}
+
+	// Iterate over the rows
+	for rows.Next() {
+		values := make([]interface{}, len(columns))
+		valuePointers := make([]interface{}, len(columns))
+
+		for i := range values {
+			valuePointers[i] = &values[i]
+		}
+
+		if err := rows.Scan(valuePointers...); err != nil {
+			return nil, nil, err
+		}
+
+		row := make(map[string]interface{})
+		for i, colName := range columns {
+			row[colName] = values[i]
+		}
+
+		results = append(results, row)
+	}
+
+	return results, columns, nil
+}
+
 // InitWin 初始化界面
 func InitWin() {
 
