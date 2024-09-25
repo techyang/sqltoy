@@ -184,9 +184,17 @@ func (m *DataModel) RowCount() int {
 }
 
 func (m *DataModel) Value(row, col int) interface{} {
-	return m.items[row][m.columns[col]]
+	value := m.items[row][m.columns[col]]
+	if byteValue, ok := value.([]byte); ok {
+		return safeString(byteValue) // Convert byte slice to a safe string
+	}
+	return value
 }
 
+// safeString converts []byte to string and removes any NUL character if present
+func safeString(value []byte) string {
+	return strings.ReplaceAll(string(value), "\x00", "")
+}
 func (m *DataModel) ColumnCount() int {
 	return len(m.columns)
 }
@@ -270,7 +278,7 @@ func InitWin() {
 	treeView.SetModel(treeModel)
 	treeView.expandAllNodes(treeModel)
 	var tableView *walk.TableView
-
+	var textEdit *walk.TextEdit
 	if err := (MainWindow{
 		Title:      "SQLTOY",
 		AssignTo:   &tmw.MainWindow,
@@ -853,10 +861,14 @@ func InitWin() {
 														//Background: TransparentBrush{},
 														AssignTo: &tmw.TabWidget,
 													},
+													TextEdit{
+														Text:     "select * from infra_job;",
+														AssignTo: &textEdit,
+													},
 													PushButton{
 														Text: "Execute Query",
 														OnClicked: func() {
-															query := "select * from infra_job"
+															query := textEdit.Text()
 															data, columns, err := fetchDataFromMySQL(query)
 															if err != nil {
 																walk.MsgBox(tmw, "Error", fmt.Sprintf("Query failed: %s", err), walk.MsgBoxIconError)
