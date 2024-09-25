@@ -164,6 +164,95 @@ func (tv *MyTreeView) expandAllNodes(model walk.TreeModel) {
 
 var lnTextEdit LineNumberTextEdit
 
+// MySQL connection parameters
+const (
+	USER     = "root"          // MySQL username
+	PASSWORD = "password"      // MySQL password
+	HOST     = "localhost"     // MySQL server host
+	DATABASE = "your_database" // Database name
+)
+
+// DataModel to be used in TableView
+type DataModel struct {
+	walk.TableModelBase
+	items   []map[string]interface{}
+	columns []string
+}
+
+func (m *DataModel) RowCount() int {
+	return len(m.items)
+}
+
+func (m *DataModel) Value(row, col int) interface{} {
+	value := m.items[row][m.columns[col]]
+	if byteValue, ok := value.([]byte); ok {
+		return safeString(byteValue) // Convert byte slice to a safe string
+	}
+	return value
+}
+
+// safeString converts []byte to string and removes any NUL character if present
+func safeString(value []byte) string {
+	return strings.ReplaceAll(string(value), "\x00", "")
+}
+func (m *DataModel) ColumnCount() int {
+	return len(m.columns)
+}
+
+func (m *DataModel) ResetData(newItems []map[string]interface{}, newColumns []string) {
+	m.items = newItems
+	m.columns = newColumns
+	m.PublishRowsReset()
+	m.PublishRowsChanged(0, len(newItems)-1)
+}
+
+// Fetch data from MySQL using the provided query
+func fetchDataFromMySQL(query string) ([]map[string]interface{}, []string, error) {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", USER, PASSWORD, HOST, DATABASE)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	// Get column names
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var results []map[string]interface{}
+
+	// Iterate over the rows
+	for rows.Next() {
+		values := make([]interface{}, len(columns))
+		valuePointers := make([]interface{}, len(columns))
+
+		for i := range values {
+			valuePointers[i] = &values[i]
+		}
+
+		if err := rows.Scan(valuePointers...); err != nil {
+			return nil, nil, err
+		}
+
+		row := make(map[string]interface{})
+		for i, colName := range columns {
+			row[colName] = values[i]
+		}
+
+		results = append(results, row)
+	}
+
+	return results, columns, nil
+}
+
 // InitWin 初始化界面
 func InitWin() {
 
@@ -171,7 +260,7 @@ func InitWin() {
 	tvm.rootNodes = createSampleData()
 
 	tmw := new(TabMainWindow)
-
+	var dataModel = new(DataModel)
 	/*	var model = new(OrganizationTreeModel)
 		p := NewOrganization("222", "orgs[i].OrgName2222", nil)
 		NewOrganization("222-1", "orgs[i].OrgName2222", p)
@@ -188,7 +277,8 @@ func InitWin() {
 	var treeView = new(MyTreeView)
 	treeView.SetModel(treeModel)
 	treeView.expandAllNodes(treeModel)
-
+	var tableView *walk.TableView
+	var textEdit *walk.TextEdit
 	if err := (MainWindow{
 		Title:      "SQLTOY",
 		AssignTo:   &tmw.MainWindow,
@@ -771,77 +861,41 @@ func InitWin() {
 														//Background: TransparentBrush{},
 														AssignTo: &tmw.TabWidget,
 													},
+													TextEdit{
+														Text:     "select * from infra_job;",
+														AssignTo: &textEdit,
+													},
+													PushButton{
+														Text: "Execute Query",
+														OnClicked: func() {
+															query := textEdit.Text()
+															data, columns, err := fetchDataFromMySQL(query)
+															if err != nil {
+																walk.MsgBox(tmw, "Error", fmt.Sprintf("Query failed: %s", err), walk.MsgBoxIconError)
+																return
+															}
+
+															// Reset the data model
+															dataModel.ResetData(data, columns)
+
+															// Clear existing columns
+															//tv.Columns().Clear()
+
+															// Dynamically create columns based on query result
+															// Dynamically create columns based on query result
+															for _, colName := range columns {
+																column := walk.NewTableViewColumn()
+																column.SetTitle(colName)
+																tableView.Columns().Add(column)
+															}
+														},
+													},
 													TableView{
-														//AssignTo:         &cfc.previewCanTbl,
+														AssignTo:         &tableView,
 														AlternatingRowBG: true,
 														//AlternatingRowBGColor: walk.RGB(239, 239, 239),
 														ColumnsOrderable: true,
-														Columns: []TableViewColumn{
-															{Name: "Index", Title: "#", Frozen: true, Width: 60, Alignment: AlignCenter},
-															{Name: "GroupName", Title: "分组名", Width: 120, Alignment: AlignCenter},
-															{Name: "Sort", Title: "分组排序", Alignment: AlignCenter, Width: 60},
-															{Name: "Remark", Title: "分组标识", Alignment: AlignCenter, Width: 60},
-															{Name: "Chinesename", Title: "别名", Alignment: AlignCenter, Width: 140},
-															{Name: "FieldName", Title: "字段名", Alignment: AlignCenter, Width: 140},
-															{Name: "OutfieldId", Title: "CAN编码", Width: 60, Alignment: AlignFar},
-															{Name: "Unit", Title: "单位", Alignment: AlignCenter, Width: 60},
-															{Name: "DataType", Title: "数据类型", Alignment: AlignCenter, Width: 100, FormatFunc: func(value interface{}) string {
-																switch value {
-																case "1":
-																	return "日期时间"
-																case "2":
-																	return "数字枚举"
-																case "3":
-																	return "数据"
-																case "4":
-																	return "其他"
-																case "5":
-																	return "文本枚举"
-																case "6":
-																	return "文本多枚举值"
-																case "7":
-																	return "多字段组合多枚举值"
-																default:
-																	return ""
-																}
-															}},
-															{Name: "Formula", Title: "转换公式", Alignment: AlignCenter, Width: 100},
-															{Name: "Decimals", Title: "小数位", Alignment: AlignCenter, Width: 50},
-															{Name: "DataMap", Title: "值域", Alignment: AlignCenter, Width: 160},
-															{Name: "IsAlarm", Title: "是否软报警", Alignment: AlignCenter, Width: 75, FormatFunc: func(value interface{}) string {
-																switch value {
-																case "0":
-																	return ""
-																case "1":
-																	return "√"
-																default:
-																	return ""
-																}
-															}},
-															{Name: "IsAnalysable", Title: "是否可分析", Alignment: AlignCenter, Width: 75, FormatFunc: func(value interface{}) string {
-																switch value {
-																case 0:
-																	return ""
-																case 1:
-																	return "√"
-																case 2:
-																	return "√√"
-																default:
-																	return ""
-																}
-															}},
-															{Name: "IsDelete", Title: "是否删除", Alignment: AlignCenter, Width: 75, FormatFunc: func(value interface{}) string {
-																switch value {
-																case 0:
-																	return ""
-																case 1:
-																	return "√"
-																default:
-																	return ""
-																}
-															}},
-															{Name: "OutfieldSn", Title: "CAN排序", Alignment: AlignCenter, Width: 75},
-														},
+														Model:            dataModel,
 													},
 												},
 											},
