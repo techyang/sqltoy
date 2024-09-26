@@ -879,7 +879,7 @@ func InitWin() {
 															dataModel.ResetData(data, columns)
 
 															// Clear existing columns
-															//tv.Columns().Clear()
+															tableView.Columns().Clear()
 
 															// Dynamically create columns based on query result
 															// Dynamically create columns based on query result
