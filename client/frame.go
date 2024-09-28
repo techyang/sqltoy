@@ -814,7 +814,7 @@ func InitWin() {
 											Margins:     Margins{Top: 3},
 											MarginsZero: true,
 											SpacingZero: true,
-											//Alignment: AlignHVDefault,
+
 											Alignment: AlignHCenterVCenter,
 										},
 										Children: []Widget{
