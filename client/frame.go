@@ -755,9 +755,6 @@ func InitWin() {
 							Composite{
 								Layout: Grid{
 									Columns: 2,
-									//Margins: Margins{Top: 3},
-									/*	MarginsZero: true,
-										SpacingZero: true,*/
 								},
 								Children: []Widget{
 									/*Label{
