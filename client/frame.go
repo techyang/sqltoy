@@ -757,12 +757,7 @@ func InitWin() {
 									Columns: 2,
 								},
 								Children: []Widget{
-									/*Label{
-										//AssignTo: &vtc.statLbl,
-										Text: "ddd",
-										Font: Font{PointSize: 10},
-									},*/
-									//HSpacer{},
+
 									TextEdit{Text: "数据库过滤器", MaxSize: Size{Width: 20, Height: 10}, RowSpan: 1},
 									TextEdit{Text: "表过滤器"},
 									TreeView{
