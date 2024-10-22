@@ -773,8 +773,6 @@ func InitWin() {
 
 									HSpacer{RowSpan: 500},
 									HSpacer{},
-									HSpacer{},
-									HSpacer{},
 								},
 							},
 							//HSpacer{},
