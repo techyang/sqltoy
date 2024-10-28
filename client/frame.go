@@ -775,9 +775,6 @@ func InitWin() {
 									HSpacer{},
 								},
 							},
-							//HSpacer{},
-							//TextEdit{Text: "abc"},
-
 						},
 					},
 					Composite{
