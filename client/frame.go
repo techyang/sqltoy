@@ -699,7 +699,6 @@ func InitWin() {
 					Text:    "Special",
 					Image:   "../img/system-shutdown.png",
 					Enabled: Bind("isSpecialMode && enabledCB.Checked"),
-					//OnTriggered: mw.specialAction_Triggered,
 				},
 			},
 		},
