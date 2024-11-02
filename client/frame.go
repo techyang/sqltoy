@@ -889,9 +889,6 @@ func InitWin() {
 		log.Fatal(err)
 	}
 
-	//tmw.SetX((utils.GetSystemMetrics(0) - tmw.WidthPixels()) / 2)
-	//tmw.SetY((utils.GetSystemMetrics(1) - tmw.HeightPixels()) / 2)
-
 	//InitVehicleTypePage(tmw)
 	//tmw.newTab("设置")
 	//tmw.newTab("我的")
