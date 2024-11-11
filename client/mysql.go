@@ -19,6 +19,7 @@ func OpenDB() (db *sql.DB, err error) {
 	return db, nil
 }
 
+// ping
 func Ping() bool {
 	db, err := OpenDB()
 	if err != nil {
