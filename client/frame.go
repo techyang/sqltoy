@@ -354,14 +354,10 @@ func InitWin() {
 						Text:        "&运行SQL文件...",
 						OnTriggered: tmw.about,
 					},
-					Action{
-						Text:        "&保存111",
-						Shortcut:    Shortcut{walk.ModControl, walk.KeyS},
-						OnTriggered: tmw.save,
-					},
+
 					Action{
 						Text:        "&保存为SQL片段...",
-						OnTriggered: tmw.about,
+						OnTriggered: tmw.save,
 					},
 					Separator{},
 					Action{
